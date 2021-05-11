@@ -2453,6 +2453,20 @@ Function EnableF1HelpKey {
 	Remove-Item "HKCU:\Software\Classes\TypeLib\{8cec5860-07a1-11d9-b15e-000d56bfe6ee}\1.0\0" -Recurse -ErrorAction SilentlyContinue
 }
 
+
+Function EnableMeetNowIcon {
+	Write-Output "Enabling Meet now Icon"
+	Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "HideSCAMeetNow" -ErrorAction SilentlyContinue
+}
+
+Function DisableMeetNowIcon {
+	Write-Output "Disabling Meet now Icon"
+	If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
+		New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
+	}
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "HideSCAMeetNow" -Type DWord -Value 1
+}
+
 ##########
 #endregion UI Tweaks
 ##########
@@ -4075,6 +4089,25 @@ Function UnpinTaskbarIcons {
 #endregion Unpinning
 ##########
 
+Function Enable WSL {
+	dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+	dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+	#TODO: install update for kernel
+	wsl --set-default-version 2
+}
+
+Function SetLanguage {
+	#TODO: only for local user
+        $UserLanguageList = New-WinUserLanguageList -Language en-US
+        $UserLanguageList.add("sk-SK")
+	$UserLanguageList[0].Handwriting = $False
+	$UserLanguageList[0].Spellchecking = $True
+	$UserLanguageList[1].Handwriting = $False
+	$UserLanguageList[1].Spellchecking = $True
+
+	Set-WinUserLanguageList -LanguageList $UserLanguageList -Confirm
+}
+
 
 
 ##########
@@ -4096,8 +4129,6 @@ Function Restart {
 ##########
 #endregion Auxiliary Functions
 ##########
-
-
 
 # Export functions
 Export-ModuleMember -Function *
